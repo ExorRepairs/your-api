@@ -45,4 +45,3 @@ router.post("/", authenticateUser, authorizeRole("dispatcher"), async (req, res)
 });
 
 module.exports = router;
-

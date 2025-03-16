@@ -26,3 +26,4 @@ const authorizeRole = (requiredRole) => {
 };
 
 module.exports = { authenticateUser, authorizeRole };
+
