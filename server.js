@@ -35,6 +35,10 @@ app.use("/api/auth", authRoutes);
 const jobRoutes = require("./routes/jobs");
 app.use("/api/jobs", jobRoutes);
 
+// ✅ Add users route (Only for dispatchers)
+const userRoutes = require("./routes/users");
+app.use("/api/users", userRoutes);
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error("❌ ERROR:", err.stack);
