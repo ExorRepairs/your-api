@@ -28,7 +28,7 @@ router.post("/login", async (req, res) => {
     const { data: userData, error: roleError } = await supabase
         .from("users")
         .select("role")
-        .eq("id", supabaseUserId) // Match by `id`
+        .eq("supabase_user_id", supabaseUserId) // ✅ Fixed: Match using `supabase_user_id`
         .single();
 
     if (roleError || !userData) {
