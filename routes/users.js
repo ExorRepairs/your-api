@@ -5,43 +5,48 @@ const { createClient } = require("@supabase/supabase-js");
 const router = express.Router();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
-// ✅ Allow only dispatchers to add new users
-router.post("/", authenticateUser, authorizeRole("dispatcher"), async (req, res) => {
-    const { email, password, role } = req.body;
+// ✅ List all users (dispatchers only)
+router.get("/", authenticateUser, authorizeRole("dispatcher"), async (req, res) => {
+    const { data: users, error } = await supabase
+        .from("users")
+        .select("id, email, role");
 
-    if (!email || !password || !role) {
-        return res.status(400).json({ error: "Email, password, and role are required." });
-    }
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json(users);
+});
+
+// ✅ Update user role (dispatchers only)
+router.put("/:id", authenticateUser, authorizeRole("dispatcher"), async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
 
     if (!["tech", "dispatcher"].includes(role)) {
-        return res.status(400).json({ error: "Invalid role. Must be 'tech' or 'dispatcher'." });
+        return res.status(400).json({ error: "Invalid role" });
     }
 
-    // ✅ Step 1: Create user in Supabase Auth
-    const { data: authUser, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-    });
-
-    if (authError) return res.status(400).json({ error: authError.message });
-
-    const supabaseUserId = authUser.user.id;
-
-    // ✅ Step 2: Save user in `users` table with correct role
-    const { data: newUser, error: dbError } = await supabase
+    const { data, error } = await supabase
         .from("users")
-        .insert([{ id: supabaseUserId, email, role, supabase_user_id: supabaseUserId }]);
+        .update({ role })
+        .eq("id", id);
 
-    if (dbError) return res.status(500).json({ error: dbError.message });
+    if (error) return res.status(500).json({ error: error.message });
 
-    res.json({
-        message: "✅ User created successfully!",
-        user: {
-            id: supabaseUserId,
-            email,
-            role,
-        },
-    });
+    res.json({ message: "✅ User role updated successfully", user: data });
+});
+
+// ✅ Delete user (dispatchers only)
+router.delete("/:id", authenticateUser, authorizeRole("dispatcher"), async (req, res) => {
+    const { id } = req.params;
+
+    const { error } = await supabase
+        .from("users")
+        .delete()
+        .eq("id", id);
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json({ message: "✅ User deleted successfully" });
 });
 
 module.exports = router;
