@@ -4,11 +4,6 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const { createClient } = require("@supabase/supabase-js");
 
-// Load authentication routes
-const authRoutes = require("./routes/auth");
-app.use("/api/auth", authRoutes);
-
-
 // Load environment variables
 dotenv.config();
 
@@ -33,7 +28,10 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "✅ API is running successfully." });
 });
 
-// Load job routes
+// Load routes AFTER app is initialized
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
+
 const jobRoutes = require("./routes/jobs");
 app.use("/api/jobs", jobRoutes);
 
